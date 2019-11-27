@@ -4,3 +4,9 @@ C:\Non_system_files\Универ\Защита информации и надеж
 C:\Non_system_files\Универ\Защита информации и надежность информационных систем\Лабы\5\5\obj\Debug\5.csprojAssemblyReference.cache
 C:\Non_system_files\Универ\Защита информации и надежность информационных систем\Лабы\5\5\obj\Debug\5.exe
 C:\Non_system_files\Универ\Защита информации и надежность информационных систем\Лабы\5\5\obj\Debug\5.pdb
+D:\NotForWork\ZI\5\5\bin\Debug\5.exe.config
+D:\NotForWork\ZI\5\5\bin\Debug\5.exe
+D:\NotForWork\ZI\5\5\bin\Debug\5.pdb
+D:\NotForWork\ZI\5\5\obj\Debug\5.csprojAssemblyReference.cache
+D:\NotForWork\ZI\5\5\obj\Debug\5.exe
+D:\NotForWork\ZI\5\5\obj\Debug\5.pdb
