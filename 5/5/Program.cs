@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -354,7 +355,7 @@ namespace _5
 
         public static byte[,] GetFirstDiagParity(byte[,,] matrix)
         {
-            byte[,] firstDiagParity = new byte[matrix.GetLongLength(0), matrix.GetLongLength(1)];
+            byte[,] firstDiagParity = new byte[matrix.GetLongLength(0), matrix.GetLongLength(0)];
             byte sum;
             for (int g = 0; g < matrix.GetLongLength(2); g++)
             {
@@ -369,13 +370,14 @@ namespace _5
                     Console.WriteLine(sum);
                     firstDiagParity[g, i] = (byte)(sum % 2);
                 }
+                Console.WriteLine();
             }
             return firstDiagParity;
         }
 
         public static byte[,] GetSecondDiagParity(byte[,,] matrix)
         {
-            byte[,] secondDiagParity = new byte[matrix.GetLongLength(0), matrix.GetLongLength(1)];
+            byte[,] secondDiagParity = new byte[matrix.GetLongLength(0), matrix.GetLongLength(0)];
             byte sum;
             for (int g = 0; g < matrix.GetLongLength(2); g++)
             {
@@ -392,6 +394,7 @@ namespace _5
                     Console.WriteLine(sum);
                     secondDiagParity[g, i] = (byte)(sum % 2);
                 }
+                Console.WriteLine();
             }
             return secondDiagParity;
         }
@@ -480,7 +483,7 @@ namespace _5
         }
 
 
-        public static void FindMistakesWithTwoParitiesThree(int k1, int k2, byte[] paritiesWithMistakes, byte[] newParities)
+        public static void FindMistakesWithTwoParitiesThree(int k1, int k2, int k3, byte[] paritiesWithMistakes, byte[] newParities)
         {
             //сравним паритеты
             Console.WriteLine("Сравним паритеты");
@@ -493,28 +496,70 @@ namespace _5
             byte[] syndrom = GetSyndrom(paritiesWithMistakes, newParities);
             ShowWord(syndrom);
 
+
             //распарсим синдромы паритетов
             Console.WriteLine("Распарсим синдром паритетов");
-            byte[] firstParitySyndrom = new byte[k1];
-            Array.Copy(syndrom, 0, firstParitySyndrom, 0, k1);
-            byte[] secondParitySyndrom = new byte[k2];
-            Array.Copy(syndrom, k1, secondParitySyndrom, 0, k2);
+            byte[] firstParitySyndrom = new byte[k1*k2];
+            Array.Copy(syndrom, 0, firstParitySyndrom, 0, k1*k2);
+            byte[] secondParitySyndrom = new byte[k2*k3];
+            Array.Copy(syndrom, k1*k2, secondParitySyndrom, 0, k2*k3);
             ShowWord(firstParitySyndrom);
             ShowWord(secondParitySyndrom);
 
-            //ИСПРАВИМ ОШИБКИ
-            for (int i = 0; i < firstParitySyndrom.Length; i++)
+
+            //распарсим синдромы паритетов
+            Console.WriteLine("Распарсим синдром паритетов");
+            byte[,] firstParitySyndromMatrix = new byte[k1, k2];
+            for (int i = 0; i < k1; i++)
             {
-                if (firstParitySyndrom[i] == (byte)1)
+                for (int j = 0; j < k2; j++)
                 {
-                    for (int j = 0; j < secondParitySyndrom.Length; j++)
+                    firstParitySyndromMatrix[i, j] = syndrom[i * k2 + j];
+                }
+            }
+            byte[,] secondParitySyndromMatrix = new byte[k2, k3];
+            for (int i = 0; i < k2; i++)
+            {
+                for (int j = 0; j < k3; j++)
+                {
+                    secondParitySyndromMatrix[i, j] = syndrom[(k1 * k2) + i * k3 + j];
+                }
+            }
+            Console.WriteLine("Первый синдром");
+            ShowMatrix(firstParitySyndromMatrix);
+            Console.WriteLine("Второй синдром");
+            ShowMatrix(secondParitySyndromMatrix);
+
+
+            //ИСПРАВИМ ОШИБКИ
+            List<int> errorsNumbers = new List<int>();
+            for (int fp0 = 0; fp0 < firstParitySyndromMatrix.GetLongLength(0); fp0++)
+            {
+                for (int fp1 = 0; fp1 < firstParitySyndromMatrix.GetLongLength(1); fp1++)
+                {
+                    if (firstParitySyndromMatrix[fp0, fp1] == (byte)1)
                     {
-                        if (secondParitySyndrom[j] == (byte)1)
+                        for (int sp0 = 0; sp0 < secondParitySyndromMatrix.GetLongLength(0); sp0++)
                         {
-                            Console.WriteLine("Ошибка в бите №" + ((i * secondParitySyndrom.Length) + (j + 1) - 1));
+                            for (int sp1 = 0; sp1 < secondParitySyndromMatrix.GetLongLength(1); sp1++)
+                            {
+                                if (secondParitySyndromMatrix[sp0, sp1] == (byte)1)
+                                {
+                                    errorsNumbers.Add((int)(fp0 * firstParitySyndromMatrix.GetLongLength(0)
+                                                        + fp1
+                                                        + sp0 * secondParitySyndromMatrix.GetLongLength(0)
+                                                        + sp1));
+                                }
+                            }
                         }
                     }
                 }
+            }
+            errorsNumbers = errorsNumbers.Distinct().ToList();
+            errorsNumbers = errorsNumbers.OrderBy(x => x).ToList();
+            foreach (var item in errorsNumbers)
+            {
+                Console.WriteLine("Ошибка в бите №" + item);
             }
         }
 
@@ -564,28 +609,331 @@ namespace _5
             ShowMatrix(thirdParitySyndrom);
 
             //ИСПРАВИМ ОШИБКИ
-            for (int i = 0; i < firstParitySyndrom.Length; i++)
+            List<int> errorsNumbers = new List<int>();
+            for (int fp0 = 0; fp0 < firstParitySyndrom.GetLongLength(0); fp0++)
             {
-                if (firstParitySyndrom[i] == (byte)1)
+                for (int fp1 = 0; fp1 < firstParitySyndrom.GetLongLength(1); fp1++)
                 {
-                    for (int j = 0; j < secondParitySyndrom.Length; j++)
+                    if (firstParitySyndrom[fp0, fp1] == (byte)1)
                     {
-                        if (secondParitySyndrom[j] == (byte)1)
+                        for (int sp0 = 0; sp0 < secondParitySyndrom.GetLongLength(0); sp0++)
                         {
-                            for (int g = 0; g < thirdParitySyndrom.Length; g++)
+                            for (int sp1 = 0; sp1 < secondParitySyndrom.GetLongLength(1); sp1++)
                             {
-                                if (thirdParitySyndrom[g] == (byte)1)
+                                if (secondParitySyndrom[sp0, sp1] == (byte)1)
                                 {
-                                    Console.WriteLine("Ошибка в бите №" + ((i * secondParitySyndrom.Length) + (j + 1) - 1));
+                                    for (int thp0 = 0; thp0 < thirdParitySyndrom.GetLongLength(0); thp0++)
+                                    {
+                                        for (int thp1 = 0; thp1 < thirdParitySyndrom.GetLongLength(1); thp1++)
+                                        {
+                                            if (thirdParitySyndrom[thp0, thp1] == (byte)1)
+                                            {
+                                                errorsNumbers.Add((int)
+                                                        (fp0 * firstParitySyndrom.GetLongLength(1)
+                                                        + (fp1 + 1) - 1
+                                                        + sp0 * thirdParitySyndrom.GetLongLength(1)
+                                                        + (sp1 + 1) - 1
+                                                        + thp0 * thirdParitySyndrom.GetLongLength(1)
+                                                        + (thp1 + 1) - 1)
+                                                        );
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            errorsNumbers = errorsNumbers.Distinct().ToList();
+            errorsNumbers = errorsNumbers.OrderBy(x => x).ToList();
+            foreach (var item in errorsNumbers)
+            {
+                Console.WriteLine("Ошибка в бите №" + item);
+            }
 
         }
 
+        public static void FindMistakesWithFourParitiesThree(int k1, int k2, int k3, byte[] paritiesWithMistakes, byte[] newParities)
+        {
+            //сравним паритеты
+            Console.WriteLine("Сравним паритеты");
+            ShowWord(paritiesWithMistakes);
+            ShowWord(newParities);
+
+            //получим синдромы
+            Console.WriteLine("Получим синдром");
+            byte[] syndrom = GetSyndrom(paritiesWithMistakes, newParities);
+            ShowWord(syndrom);
+
+            //распарсим синдромы паритетов
+            Console.WriteLine("Распарсим синдром паритетов");
+            byte[,] firstParitySyndrom = new byte[k1, k2];
+            for (int i = 0; i < k1; i++)
+            {
+                for (int j = 0; j < k2; j++)
+                {
+                    firstParitySyndrom[i, j] = syndrom[i * k2 + j];
+                }
+            }
+            byte[,] secondParitySyndrom = new byte[k2, k3];
+            for (int i = 0; i < k2; i++)
+            {
+                for (int j = 0; j < k3; j++)
+                {
+                    secondParitySyndrom[i, j] = syndrom[(k1 * k2) + i * k3 + j];
+                }
+            }
+            byte[,] thirdParitySyndrom = new byte[k3, k1];
+            for (int i = 0; i < k3; i++)
+            {
+                for (int j = 0; j < k1; j++)
+                {
+                    thirdParitySyndrom[i, j] = syndrom[(k3 * k1) + (k1 * k2) + i * k1 + j];
+                }
+            }
+            byte[,] fourParitySyndrom = new byte[k1, k3];
+            for (int i = 0; i < k1; i++)
+            {
+                for (int j = 0; j < k3; j++)
+                {
+                    fourParitySyndrom[i, j] = syndrom[(k3 * k1) + (k1 * k2) + (k1 * k3) + i * k3 + j];
+                }
+            }
+            byte[,,] syndromMatrixThreeDimensial = new byte[k1, k2, k3];
+            Console.WriteLine("Первый синдром");
+            ShowMatrix(firstParitySyndrom);
+            Console.WriteLine("Второй синдром");
+            ShowMatrix(secondParitySyndrom);
+            Console.WriteLine("Третий синдром");
+            ShowMatrix(thirdParitySyndrom);
+            Console.WriteLine("Четвёртый синдром");
+            ShowMatrix(fourParitySyndrom);
+            
+            
+            //ИСПРАВИМ ОШИБКИ
+            for (int fp0 = 0; fp0 < k1; fp0++)
+            {
+                for (int fp1 = 0; fp1 < k2; fp1++)
+                {
+                    for (int i = 0; i < k3; i++)
+                    {
+                        syndromMatrixThreeDimensial[fp0,fp1,i] = firstParitySyndrom[fp0,fp1];
+                    }
+                }
+            }
+            for (int sp0 = 0; sp0 < k2; sp0++)
+            {
+                for (int sp1 = 0; sp1 < k3; sp1++)
+                {
+                    for (int i = 0; i < k1; i++)
+                    {
+                        if (syndromMatrixThreeDimensial[i, sp0, sp1] == (byte)1)
+                            syndromMatrixThreeDimensial[i, sp0, sp1] = secondParitySyndrom[sp0, sp1];
+                    }
+                }
+            }
+            for (int thp0 = 0; thp0 < k3; thp0++)
+            {
+                for (int thp1 = 0; thp1 < k1; thp1++)
+                {
+                    for (int i = 0; i < k1; i++)
+                    {
+                        if (syndromMatrixThreeDimensial[thp1, i, thp0] == (byte)1)
+                            syndromMatrixThreeDimensial[thp1, i, thp0] = thirdParitySyndrom[thp0, thp1];
+                    }
+                }
+            }
+            for (int i = 0; i < k3; i++)
+            {
+                for (int fd0 = 0; fd0 < k1; fd0++)
+                {
+                    for (int fd1 = 0; fd1 < k2; fd1++)
+                    {
+                        if (syndromMatrixThreeDimensial[(fd0 + fd1) % k1, (fd1) % k2, i] == (byte)1)
+                            syndromMatrixThreeDimensial[(fd0 + fd1) % k1, (fd1) % k2, i] = fourParitySyndrom[i, fd0];
+                    }
+                }
+            }
+
+
+            List<int> errorsNumbers = new List<int>();
+            for (int i = 0; i < k1; i++)
+            {
+                for (int j = 0; j < k2; j++)
+                {
+                    for (int g = 0; g < k3; g++)
+                    {
+                        if (syndromMatrixThreeDimensial[i, j, g] == (byte)1)
+                        {
+                            errorsNumbers.Add((int)
+                                            i * k2
+                                            + j * k3 
+                                            + g
+                                            );
+                        }                        
+                    }
+                }
+            }
+            errorsNumbers = errorsNumbers.Distinct().ToList();
+            errorsNumbers = errorsNumbers.OrderBy(x => x).ToList();
+            foreach (var item in errorsNumbers)
+            {
+                Console.WriteLine("Ошибка в бите №" + item);
+            }
+
+        }
+
+        public static void FindMistakesWithFiveParitiesThree(int k1, int k2, int k3, byte[] paritiesWithMistakes, byte[] newParities)
+        {
+            //сравним паритеты
+            Console.WriteLine("Сравним паритеты");
+            ShowWord(paritiesWithMistakes);
+            ShowWord(newParities);
+
+            //получим синдромы
+            Console.WriteLine("Получим синдром");
+            byte[] syndrom = GetSyndrom(paritiesWithMistakes, newParities);
+            ShowWord(syndrom);
+
+            //распарсим синдромы паритетов
+            Console.WriteLine("Распарсим синдром паритетов");
+            byte[,] firstParitySyndrom = new byte[k1, k2];
+            for (int i = 0; i < k1; i++)
+            {
+                for (int j = 0; j < k2; j++)
+                {
+                    firstParitySyndrom[i, j] = syndrom[i * k2 + j];
+                }
+            }
+            byte[,] secondParitySyndrom = new byte[k2, k3];
+            for (int i = 0; i < k2; i++)
+            {
+                for (int j = 0; j < k3; j++)
+                {
+                    secondParitySyndrom[i, j] = syndrom[(k1 * k2) + i * k3 + j];
+                }
+            }
+            byte[,] thirdParitySyndrom = new byte[k3, k1];
+            for (int i = 0; i < k3; i++)
+            {
+                for (int j = 0; j < k1; j++)
+                {
+                    thirdParitySyndrom[i, j] = syndrom[(k3 * k1) + (k1 * k2) + i * k1 + j];
+                }
+            }
+            byte[,] fourParitySyndrom = new byte[k1, k3];
+            for (int i = 0; i < k1; i++)
+            {
+                for (int j = 0; j < k3; j++)
+                {
+                    fourParitySyndrom[i, j] = syndrom[(k3 * k1) + (k1 * k2) + (k1 * k3) + i * k3 + j];
+                }
+            }
+            byte[,] fifthParitySyndrom = new byte[k1, k3];
+            for (int i = 0; i < k3; i++)
+            {
+                for (int j = 0; j < k1; j++)
+                {
+                    fifthParitySyndrom[i, j] = syndrom[(k3 * k1) + (k1 * k2) + (k1 * k3) + (k3 * k1) + i * k1 + j];
+                }
+            }
+            byte[,,] syndromMatrixThreeDimensial = new byte[k1, k2, k3];
+            Console.WriteLine("Первый синдром");
+            ShowMatrix(firstParitySyndrom);
+            Console.WriteLine("Второй синдром");
+            ShowMatrix(secondParitySyndrom);
+            Console.WriteLine("Третий синдром");
+            ShowMatrix(thirdParitySyndrom);
+            Console.WriteLine("Четвёртый синдром");
+            ShowMatrix(fourParitySyndrom);
+            Console.WriteLine("Пятый синдром");
+            ShowMatrix(fifthParitySyndrom);
+
+
+            //ИСПРАВИМ ОШИБКИ
+            for (int fp0 = 0; fp0 < k1; fp0++)
+            {
+                for (int fp1 = 0; fp1 < k2; fp1++)
+                {
+                    for (int i = 0; i < k3; i++)
+                    {
+                        syndromMatrixThreeDimensial[fp0, fp1, i] = firstParitySyndrom[fp0, fp1];
+                    }
+                }
+            }
+            for (int sp0 = 0; sp0 < k2; sp0++)
+            {
+                for (int sp1 = 0; sp1 < k3; sp1++)
+                {
+                    for (int i = 0; i < k1; i++)
+                    {
+                        if (syndromMatrixThreeDimensial[i, sp0, sp1] == (byte)1)
+                            syndromMatrixThreeDimensial[i, sp0, sp1] = secondParitySyndrom[sp0, sp1];
+                    }
+                }
+            }
+            for (int thp0 = 0; thp0 < k3; thp0++)
+            {
+                for (int thp1 = 0; thp1 < k1; thp1++)
+                {
+                    for (int i = 0; i < k1; i++)
+                    {
+                        if (syndromMatrixThreeDimensial[thp1, i, thp0] == (byte)1)
+                            syndromMatrixThreeDimensial[thp1, i, thp0] = thirdParitySyndrom[thp0, thp1];
+                    }
+                }
+            }
+            for (int i = 0; i < k3; i++)
+            {
+                for (int fd0 = 0; fd0 < k1; fd0++)
+                {
+                    for (int fd1 = 0; fd1 < k2; fd1++)
+                    {
+                        if (syndromMatrixThreeDimensial[(fd0 + fd1) % k1, (fd1) % k2, i] == (byte)1)
+                            syndromMatrixThreeDimensial[(fd0 + fd1) % k1, (fd1) % k2, i] = fourParitySyndrom[i, fd0];
+                    }
+                }
+            }
+            for (int i = 0; i < k3; i++)
+            {
+                for (int fd0 = 0; fd0 < k1; fd0++)
+                {
+                    for (int fd1 = 0; fd1 < k2; fd1++)
+                    {
+                        if (syndromMatrixThreeDimensial[(k1 - 1) - (fd0 + fd1) % k1, (fd1) % k2, i] == (byte)1)
+                            syndromMatrixThreeDimensial[(k1 - 1) - (fd0 + fd1) % k1, (fd1) % k2, i] = fifthParitySyndrom[i, fd0];
+                    }
+                }
+            }
+
+
+            List<int> errorsNumbers = new List<int>();
+            for (int i = 0; i < k1; i++)
+            {
+                for (int j = 0; j < k2; j++)
+                {
+                    for (int g = 0; g < k3; g++)
+                    {
+                        if (syndromMatrixThreeDimensial[i, j, g] == (byte)1)
+                        {
+                            errorsNumbers.Add((int)
+                                            i * k2
+                                            + j * k3
+                                            + g
+                                            );
+                        }
+                    }
+                }
+            }
+            errorsNumbers = errorsNumbers.Distinct().ToList();
+            errorsNumbers = errorsNumbers.OrderBy(x => x).ToList();
+            foreach (var item in errorsNumbers)
+            {
+                Console.WriteLine("Ошибка в бите №" + item);
+            }
+
+        }
 
         static void Main()
         {
@@ -693,7 +1041,7 @@ namespace _5
             Array.Copy(newfullWordThree, k, newTwoParities, 0, 
                 newTwoParities.Length);
 
-            FindMistakesWithTwoParitiesThree(k1, k2, twoParitiesWithMistakesThree, newTwoParities);
+            FindMistakesWithTwoParitiesThree(k1, k2, k3, twoParitiesWithMistakesThree, newTwoParities);
 
 
             //ищем ошибки 3 паритета
@@ -715,30 +1063,30 @@ namespace _5
             Console.WriteLine();
             Console.WriteLine("Ищем ошибки");
             byte[] fourParitiesWithMistakes = new byte[
-                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k2)];
+                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k3)];
             Array.Copy(fullWordWithMistakesThree, k, fourParitiesWithMistakes, 0, 
                 fourParitiesWithMistakes.Length);
             byte[] newFourParities = new byte[
-                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k2)];
+                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k3)];
             Array.Copy(newfullWordThree, k, newFourParities, 0, 
                 newFourParities.Length);
 
-            //FindMistakesWithFourParitiesThree(k1, k2, fourParitiesWithMistakes, newFourParities);
+            FindMistakesWithFourParitiesThree(k1, k2, k3, fourParitiesWithMistakes, newFourParities);
 
 
             //ищем ошибки 5 паритета
             Console.WriteLine();
             Console.WriteLine("Ищем ошибки");
-            byte[] fiveParitiesWithMistakes = 
-                new byte[(k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k2) + (k2 * k3)];
+            byte[] fiveParitiesWithMistakes = new byte[
+                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k3) + (k1 * k3)];
             Array.Copy(fullWordWithMistakesThree, k, fiveParitiesWithMistakes, 0, 
                 fiveParitiesWithMistakes.Length);
             byte[] newFiveParities = new byte[
-                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k2) + (k2 * k3)];
+                (k1 * k2) + (k2 * k3) + (k1 * k3) + (k1 * k3) + (k1 * k3)];
             Array.Copy(newfullWordThree, k, newFiveParities, 0, 
                 newFiveParities.Length);
 
-            //FindMistakesWithFiveParitiesThree(k1, k2, k3, k4, k5, fiveParitiesWithMistakes, newFiveParities);
+            FindMistakesWithFiveParitiesThree(k1, k2, k3, fiveParitiesWithMistakes, newFiveParities);
 
 
             Console.ReadLine();
