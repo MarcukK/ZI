@@ -141,14 +141,13 @@ namespace _6
 
 
             //формируем ошибки ---------------------------------------------------------------------------------------------------------------------------
-            int bitWithMistake = 3;
             for (int i = 0, countOfMistakes = 1; i < countOfMistakes; i++)
             {
-                //int place = rand.Next(0, k);
-                if (Xk_Byte[bitWithMistake] == 1)
-                    Xk_Byte[bitWithMistake] = 0;
+                int placeOfMistake = rand.Next(0, k);
+                if (Xk_Byte[placeOfMistake] == 1)
+                    Xk_Byte[placeOfMistake] = 0;
                 else
-                    Xk_Byte[bitWithMistake] = 1;
+                    Xk_Byte[placeOfMistake] = 1;
             }
             //вычисляем избыточные символы 2
             for (int i = 0, XrCounter = 0; i < newR; i++, XrCounter++)
@@ -200,7 +199,7 @@ namespace _6
                     }
                 }
             }
-            Console.WriteLine("ошибка в бите №" + RowWithMistake);
+            Console.WriteLine("ошибка в бите №" + (1 + RowWithMistake));
             Console.WriteLine();
 
 

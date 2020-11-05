@@ -62,10 +62,8 @@ namespace _2LabCSharp
                     }
                 }
             }
-            string FIO = "Марчук";
-            Byte[] encodedBytes = ascii.GetBytes(FIO.ToLower());
 
-                double sumCharsBits = CountersBits.Sum(x => x);
+            double sumCharsBits = CountersBits.Sum(x => x);
             Console.WriteLine(sumCharsBits + " символов");
             for (int i = 0; i < CharsBits.Count; i++)
             {
