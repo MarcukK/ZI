@@ -164,7 +164,7 @@ namespace _10
 
                 //Console.WriteLine(baseMessage == decodedFIO);
 
-                Console.WriteLine("Степень сжатия = " + encodedFIOLength / baseMessage.Length);
+                Console.WriteLine("Степень сжатия = " + baseMessage.Length / encodedFIOLength);
                 Console.WriteLine("Затраченное время = " + sw.Elapsed);
                 Console.WriteLine();
 
